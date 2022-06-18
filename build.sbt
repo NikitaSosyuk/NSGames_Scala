@@ -21,6 +21,7 @@ val ScalaTestVersion = "3.2.9"
 val ScalaTestPlusVersion = "3.2.2.0"
 val FlywayVersion = "7.15.0"
 val TsecVersion = "0.2.1"
+val PotgreSQLVersion = "42.3.4"
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % CatsVersion,
@@ -52,6 +53,7 @@ libraryDependencies ++= Seq(
   "io.github.jmcardon" %% "tsec-jwt-mac" % TsecVersion,
   "io.github.jmcardon" %% "tsec-jwt-sig" % TsecVersion,
   "io.github.jmcardon" %% "tsec-http4s" % TsecVersion,
+  "org.postgresql" % "postgresql" % PotgreSQLVersion,
 )
 
 dependencyOverrides += "org.slf4j" % "slf4j-api" % Slf4jVersion
