@@ -19,7 +19,10 @@ class DoobieUserRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor[F]
   with IdentityStore[F, Long, User] { self =>
 
   override def create(user: User): F[User] =
-    insert(user).withUniqueGeneratedKeys[Long]("id").map(id => user.copy(id = id.some)).transact(xa)
+    insert(user)
+      .withUniqueGeneratedKeys[Long]("id")
+      .map(id => user.copy(id = id.some))
+      .transact(xa)
 
   override def get(id: Long): OptionT[F, User] =
     OptionT(select(id).option.transact(xa))

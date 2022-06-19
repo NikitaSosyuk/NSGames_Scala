@@ -2,7 +2,7 @@ package nktssk.nsgames.domain.users.service
 
 import cats.{Functor, Monad}
 import cats.data.EitherT
-import nktssk.nsgames.domain._
+import nktssk.nsgames.domain.{UserAlreadyExistsError, UserNotFoundError}
 import nktssk.nsgames.domain.users.models.User
 
 trait UserServiceTrait[F[_]] {

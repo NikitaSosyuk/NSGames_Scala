@@ -1,5 +1,7 @@
 package nktssk.nsgames.repositories.auth
 
+import java.time.Instant
+
 import cats._
 import cats.data._
 import cats.effect.Bracket
@@ -12,8 +14,6 @@ import tsec.common.SecureRandomId
 import tsec.jws.JWSSerializer
 import tsec.jws.mac.{JWSMacCV, JWSMacHeader, JWTMacImpure}
 import tsec.mac.jca.{MacErrorM, MacSigningKey}
-
-import java.time.Instant
 
 private object AuthSQL {
   implicit val secureRandomIdPut: Put[SecureRandomId] =
@@ -37,13 +37,13 @@ private object AuthSQL {
       .query[(String, Long, Instant, Option[Instant])]
 }
 
-class DoobieAuthRepository[F[_]: Bracket[*[_], Throwable], A](
-    val key: MacSigningKey[A],
-    val xa: Transactor[F],
-)(implicit
-    hs: JWSSerializer[JWSMacHeader[A]],
-    s: JWSMacCV[MacErrorM, A],
-) extends BackingStore[F, SecureRandomId, AugmentedJWT[A, Long]] {
+class DoobieAuthRepositoryInterpreter[F[_]: Bracket[*[_], Throwable], A](
+                                                                          val key: MacSigningKey[A],
+                                                                          val xa: Transactor[F],
+                                                                        )(implicit
+                                                                          hs: JWSSerializer[JWSMacHeader[A]],
+                                                                          s: JWSMacCV[MacErrorM, A],
+                                                                        ) extends BackingStore[F, SecureRandomId, AugmentedJWT[A, Long]] {
   override def put(jwt: AugmentedJWT[A, Long]): F[AugmentedJWT[A, Long]] =
     AuthSQL.insert(jwt).run.transact(xa).as(jwt)
 
@@ -63,10 +63,10 @@ class DoobieAuthRepository[F[_]: Bracket[*[_], Throwable], A](
     }
 }
 
-object DoobieAuthRepository {
+object DoobieAuthRepositoryInterpreter {
   def apply[F[_]: Bracket[*[_], Throwable], A](key: MacSigningKey[A], xa: Transactor[F])(implicit
-      hs: JWSSerializer[JWSMacHeader[A]],
-      s: JWSMacCV[MacErrorM, A],
-  ): DoobieAuthRepository[F, A] =
-    new DoobieAuthRepository(key, xa)
+                                                                                         hs: JWSSerializer[JWSMacHeader[A]],
+                                                                                         s: JWSMacCV[MacErrorM, A],
+  ): DoobieAuthRepositoryInterpreter[F, A] =
+    new DoobieAuthRepositoryInterpreter(key, xa)
 }

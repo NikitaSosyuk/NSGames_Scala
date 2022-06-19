@@ -10,7 +10,6 @@ import nktssk.nsgames.domain.users.models.{User, Role}
 import tsec.jws.mac.JWSMacCV
 import tsec.jwt.algorithms.JWTMacAlgo
 import tsec.mac.jca.MacSigningKey
-
 import scala.concurrent.duration._
 
 object Auth {

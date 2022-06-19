@@ -10,10 +10,13 @@ import doobie.util.ExecutionContexts
 import io.circe.config.parser
 import nktssk.nsgames.domain.authentication.Auth
 import nktssk.nsgames.domain.users.service.UserService
+import nktssk.nsgames.domain.article.validation.ArticleValidation
+import nktssk.nsgames.domain.article.service.ArticleService
 import nktssk.nsgames.domain.users.validation.UserValidation
-import nktssk.nsgames.endpoints.confirm.ConfirmEndpoints
+import nktssk.nsgames.endpoints.article.ArticleEndpoints
 import nktssk.nsgames.endpoints.user.UserEndpoints
-import nktssk.nsgames.repositories.auth.DoobieAuthRepository
+import nktssk.nsgames.repositories.article.DoobieArticleRepository
+import nktssk.nsgames.repositories.auth.DoobieAuthRepositoryInterpreter
 import nktssk.nsgames.repositories.user.DoobieUserRepository
 import tsec.authentication.SecuredRequestHandler
 import tsec.mac.jca.HMACSHA256
@@ -31,19 +34,17 @@ object Server extends IOApp {
       key <- Resource.eval(HMACSHA256.generateKey[F])
 
       // Repositories
-      authRepo = DoobieAuthRepository[F, HMACSHA256](key, xa)
+      authRepo = DoobieAuthRepositoryInterpreter[F, HMACSHA256](key, xa)
       userRepo = DoobieUserRepository[F](xa)
-//      petRepo = DoobiePetRepositoryInterpreter[F](xa)
-//      orderRepo = DoobieOrderRepositoryInterpreter[F](xa)
+      articleRepo = DoobieArticleRepository[F](xa)
 
       // Validators
       userValidation = UserValidation[F](userRepo)
-//      petValidation = PetValidationInterpreter[F](petRepo)
+      articleValidation = ArticleValidation[F](articleRepo)
 
       // Services
       userService = UserService[F](userRepo, userValidation)
-//      petService = PetService[F](petRepo, petValidation)
-//      orderService = OrderService[F](orderRepo)
+      articleService = ArticleService[F](articleRepo, articleValidation)
 
       // Auth
       authenticator = Auth.jwtAuthenticator[F, HMACSHA256](key, authRepo, userRepo)
@@ -53,8 +54,7 @@ object Server extends IOApp {
       httpApp = Router(
         "/users" -> UserEndpoints
           .endpoints[F, BCrypt, HMACSHA256](userService, BCrypt.syncPasswordHasher[F], routeAuth),
-        "/confirm" -> ConfirmEndpoints
-          .endpoints[F, HMACSHA256](userService, routeAuth),
+        "/article" -> ArticleEndpoints.endpoints(articleService, routeAuth)
       ).orNotFound
 
       // Database + Migrate

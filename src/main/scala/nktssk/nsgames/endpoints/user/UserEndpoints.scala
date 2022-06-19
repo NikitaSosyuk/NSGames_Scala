@@ -5,7 +5,6 @@ import cats.effect.Sync
 import cats.syntax.all._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import nktssk.nsgames.domain.authentication.Auth
 import nktssk.nsgames.domain.{UserAlreadyExistsError, UserAuthenticationFailedError}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
@@ -63,7 +62,7 @@ class UserEndpoints[F[_] : Sync, A, Auth: JWTMacAlgo] extends Http4sDsl[F] {
       action.flatMap {
         case Right(saved) => Ok(saved.asJson)
         case Left(UserAlreadyExistsError(phoneNumber)) =>
-          Conflict(s"The user with user name ${phoneNumber} already exists")
+          Conflict(s"The user with [phone = ${phoneNumber}] already exists")
       }
     }
 

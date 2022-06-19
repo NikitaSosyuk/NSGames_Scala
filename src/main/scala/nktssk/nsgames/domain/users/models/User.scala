@@ -17,5 +17,7 @@ case class User(
 
 object User {
   implicit def authRole[F[_]](implicit F: Applicative[F]): AuthorizationInfo[F, Role, User] =
-    user => F.pure(user.role)
+    new AuthorizationInfo[F, Role, User] {
+      def fetchInfo(u: User): F[Role] = F.pure(u.role)
+    }
 }

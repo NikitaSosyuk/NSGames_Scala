@@ -2,11 +2,11 @@ package nktssk.nsgames.domain.users.service
 
 import cats.Monad
 import cats.data.EitherT
-import nktssk.nsgames.domain._
 import nktssk.nsgames.domain.users.models.User
 import nktssk.nsgames.domain.users.validation.UserValidationTrait
 import nktssk.nsgames.repositories.user.UserRepositoryTrait
 import cats.Functor
+import nktssk.nsgames.domain.{UserAlreadyExistsError, UserNotFoundError}
 
 import scala.util.Random
 
