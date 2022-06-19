@@ -27,4 +27,7 @@ class DoobieArticleRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor
 
   override def list(pageSize: Int, offset: Int): F[List[Article]] =
     paginate(pageSize, offset)(selectAll()).to[List].transact(xa)
+
+  override def delete(articleId: Long): F[Option[Article]] =
+    ArticleSQL.delete(articleId).option.transact(xa)
 }

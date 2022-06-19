@@ -20,4 +20,8 @@ object ArticleSQL {
     SELECT ID, USER_ID, VISIBLE, HEADER, BODY
     FROM ARTICLE
   """.query
+
+  def delete(id: Long): Query0[Article] =  sql"""
+     DELETE FROM ARTICLE WHERE ID = $id
+  """.query
 }

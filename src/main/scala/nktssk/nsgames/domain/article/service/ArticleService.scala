@@ -26,6 +26,13 @@ class ArticleService[F[_]](
 
   def list(pageSize: Int, offset: Int): F[List[Article]] =
     repository.list(pageSize, offset)
+
+  def delete(id: Long)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, Article] = {
+    for {
+      _ <- validation.exists(Some(id))
+      result <- EitherT.fromOptionF(repository.delete(id), ArticleNotFoundError)
+    } yield result
+  }
 }
 
 object ArticleService {
