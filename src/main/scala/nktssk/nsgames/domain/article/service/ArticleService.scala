@@ -2,7 +2,7 @@ package nktssk.nsgames.domain.article.service
 
 import cats.Monad
 import cats.syntax.all._
-import cats.data.{EitherT}
+import cats.data.EitherT
 import nktssk.nsgames.domain.ArticleNotFoundError
 import nktssk.nsgames.domain.article.models.Article
 import nktssk.nsgames.domain.article.validation.ArticleValidationTrait
@@ -20,18 +20,18 @@ class ArticleService[F[_]](
   def get(id: Long)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, Article] = {
     for {
           _ <- validation.exists(Some(id))
-         result <- EitherT.fromOptionF(repository.get(id), ArticleNotFoundError)
+         result <-repository.get(id).toRight(ArticleNotFoundError)
       } yield result
   }
 
   def list(pageSize: Int, offset: Int): F[List[Article]] =
     repository.list(pageSize, offset)
 
-  def delete(id: Long)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, Article] = {
+  def delete(id: Long)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, Unit] = {
     for {
       _ <- validation.exists(Some(id))
-      result <- EitherT.fromOptionF(repository.delete(id), ArticleNotFoundError)
-    } yield result
+      _ <- EitherT.right[ArticleNotFoundError.type](repository.delete(id))
+    } yield ()
   }
 }
 

@@ -91,7 +91,7 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
                   Conflict("User is not a creator of this article")
                 }
               case Left(_) =>
-                Conflict("Could not find article")
+                BadRequest("Could not find article")
             }
           } yield response
         case None =>

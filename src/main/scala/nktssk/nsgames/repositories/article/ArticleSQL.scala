@@ -7,21 +7,21 @@ import nktssk.nsgames.domain.article.models.Article
 object ArticleSQL {
   def insert(article: Article): Update0 = sql"""
     INSERT INTO ARTICLE (USER_ID, HEADER, BODY, VISIBLE)
-    VALUES (${article.userId} ${article.header}, ${article.body}, ${article.isVisible})
+    VALUES (${article.userId}, ${article.header}, ${article.body}, ${article.isVisible})
   """.update
 
   def select(id: Long): Query0[Article] = sql"""
     SELECT ID, USER_ID, VISIBLE, HEADER, BODY
     FROM ARTICLE
     WHERE ID = $id
-  """.query[Article]
+  """.query
 
   def selectAll(): Query0[Article] = sql"""
     SELECT ID, USER_ID, VISIBLE, HEADER, BODY
     FROM ARTICLE
   """.query
 
-  def delete(id: Long): Query0[Article] =  sql"""
+  def delete(id: Long): Update0 =  sql"""
      DELETE FROM ARTICLE WHERE ID = $id
-  """.query
+  """.update
 }

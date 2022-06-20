@@ -31,7 +31,7 @@ object Server extends IOApp {
       connEc <- ExecutionContexts.fixedThreadPool[F](conf.db.connections.poolSize)
       txnEc <- ExecutionContexts.cachedThreadPool[F]
       xa <- DatabaseConfig.dbTransactor(conf.db, connEc, Blocker.liftExecutionContext(txnEc))
-      key <- Resource.eval(HMACSHA256.generateKey[F])
+      key <- Resource.eval(HMACSHA256.buildKey[F]("NS is the best".getBytes()))
 
       // Repositories
       authRepo = DoobieAuthRepositoryInterpreter[F, HMACSHA256](key, xa)

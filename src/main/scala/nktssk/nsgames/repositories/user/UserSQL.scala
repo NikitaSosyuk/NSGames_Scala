@@ -18,7 +18,7 @@ object UserSQL {
   """.update
 
   def select(userId: Long): Query0[User] = sql"""
-    SELECT ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, EMAIL, PASSWORD, ROLE, STATE
+    SELECT ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, CONFIRM_CODE, PASSWORD, EMAIL, ROLE, STATE
     FROM USERS
     WHERE ID = $userId
   """.query
