@@ -15,7 +15,7 @@ object DoobieUserRepository {
 }
 
 class DoobieUserRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor[F])
-  extends UserRepositoryTrait[F]
+  extends UserRepositoryAlgebra[F]
   with IdentityStore[F, Long, User] { self =>
 
   override def create(user: User): F[User] =
@@ -33,9 +33,7 @@ class DoobieUserRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor[F]
   override def findByPhoneNumber(phoneNumber: String): OptionT[F, User] =
     OptionT(byPhoneNumber(phoneNumber).option.transact(xa))
 
-  override def updateCode(user: User): OptionT[F, User] = {
-    OptionT.fromOption[F](user.id).semiflatMap { _ =>
-      UserSQL.updateUserCode(user).run.transact(xa).as(user)
-    }
+  override def updateCode(confirmCode: String, phoneNumber: String): F[Unit] = {
+    UserSQL.update(confirmCode, confirmCode).run.transact(xa).as(())
   }
 }

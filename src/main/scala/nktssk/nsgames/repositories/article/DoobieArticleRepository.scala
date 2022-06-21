@@ -16,7 +16,7 @@ object DoobieArticleRepository {
 }
 
 class DoobieArticleRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor[F])
-  extends ArticleRepositoryTrait[F] {
+  extends ArticleRepositoryAlgebra[F] {
 
   override def create(article: Article): F[Article] =
     insert(article)

@@ -5,16 +5,16 @@ import cats.data.EitherT
 import cats.syntax.all._
 import cats.implicits.catsSyntaxApplicativeId
 import nktssk.nsgames.domain.ArticleNotFoundError
-import nktssk.nsgames.repositories.article.ArticleRepositoryTrait
+import nktssk.nsgames.repositories.article.ArticleRepositoryAlgebra
 
 
 object ArticleValidation {
-  def apply[F[_] : Applicative](repo: ArticleRepositoryTrait[F]): ArticleValidationTrait[F] =
+  def apply[F[_] : Applicative](repo: ArticleRepositoryAlgebra[F]): ArticleValidationAlgebra[F] =
     new ArticleValidation[F](repo)
 }
 
-class ArticleValidation[F[_] : Applicative](repository: ArticleRepositoryTrait[F])
-  extends ArticleValidationTrait[F] {
+class ArticleValidation[F[_] : Applicative](repository: ArticleRepositoryAlgebra[F])
+  extends ArticleValidationAlgebra[F] {
   override def exists(id: Option[Long]): EitherT[F, ArticleNotFoundError.type, Unit] =
     id match {
       case Some(id) =>

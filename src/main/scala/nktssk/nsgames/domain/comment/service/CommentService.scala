@@ -3,14 +3,14 @@ package nktssk.nsgames.domain.comment.service
 import cats.Monad
 import cats.syntax.all._
 import cats.data.EitherT
-import nktssk.nsgames.repositories.comment.CommentRepositoryTrait
+import nktssk.nsgames.repositories.comment.CommentRepositoryAlgebra
 import nktssk.nsgames.domain.ArticleNotFoundError
-import nktssk.nsgames.domain.article.validation.ArticleValidationTrait
+import nktssk.nsgames.domain.article.validation.ArticleValidationAlgebra
 import nktssk.nsgames.domain.comment.model.Comment
 
 class CommentService[F[_]](
-                            repository: CommentRepositoryTrait[F],
-                            validation: ArticleValidationTrait[F]
+                            repository: CommentRepositoryAlgebra[F],
+                            validation: ArticleValidationAlgebra[F]
                           ) {
   def create(comment: Comment)(implicit M: Monad[F]): F[Comment] =
     for {
@@ -27,8 +27,8 @@ class CommentService[F[_]](
 
 object CommentService {
   def apply[F[_]](
-                   repository: CommentRepositoryTrait[F],
-                   validation: ArticleValidationTrait[F])
+                   repository: CommentRepositoryAlgebra[F],
+                   validation: ArticleValidationAlgebra[F])
   : CommentService[F] =
     new CommentService(repository, validation)
 }

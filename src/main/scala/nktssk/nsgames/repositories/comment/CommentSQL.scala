@@ -10,9 +10,9 @@ object CommentSQL {
     VALUES (${comment.userId}, ${comment.articleId}, ${comment.username}, ${comment.text}, ${comment.time})
   """.update
 
-  def select(id: Long): Query0[Comment] = sql"""
-    SELECT ID, USER_ID, ARTICLE_ID, USERNAME, TEXT, TIME
+  def select(articleId: Long): Query0[Comment] = sql"""
+    SELECT ID, USER_ID, USERNAME, ARTICLE_ID, TEXT, TIME
     FROM COMMENT
-    WHERE ID = $id
+    WHERE ARTICLE_ID = $articleId
   """.query
 }

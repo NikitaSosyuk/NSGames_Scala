@@ -16,10 +16,12 @@ import nktssk.nsgames.domain.article.service.ArticleService
 import nktssk.nsgames.domain.users.validation.UserValidation
 import nktssk.nsgames.endpoints.article.ArticleEndpoints
 import nktssk.nsgames.endpoints.comment.CommentEndpoints
+import nktssk.nsgames.endpoints.feedback.FeedbackEndpoints
 import nktssk.nsgames.endpoints.user.UserEndpoints
 import nktssk.nsgames.repositories.article.DoobieArticleRepository
 import nktssk.nsgames.repositories.comment.DoobieCommentRepository
 import nktssk.nsgames.repositories.auth.DoobieAuthRepositoryInterpreter
+import nktssk.nsgames.repositories.feedback.DoobieFeedbackRepository
 import nktssk.nsgames.repositories.user.DoobieUserRepository
 import tsec.authentication.SecuredRequestHandler
 import tsec.mac.jca.HMACSHA256
@@ -41,6 +43,7 @@ object Server extends IOApp {
       userRepo = DoobieUserRepository[F](xa)
       articleRepo = DoobieArticleRepository[F](xa)
       commentRepo = DoobieCommentRepository[F](xa)
+      feedbackRepo = DoobieFeedbackRepository[F](xa)
 
       // Validators
       userValidation = UserValidation[F](userRepo)
@@ -60,7 +63,8 @@ object Server extends IOApp {
         "/auth" -> UserEndpoints
           .endpoints[F, BCrypt, HMACSHA256](userService, BCrypt.syncPasswordHasher[F], routeAuth),
         "/article" -> ArticleEndpoints.endpoints(articleService, routeAuth),
-        "/comment" -> CommentEndpoints.endpoints(commentService, routeAuth)
+        "/comment" -> CommentEndpoints.endpoints(commentService, routeAuth),
+        "/feedback" -> FeedbackEndpoints.endpoints(feedbackRepo, routeAuth)
       ).orNotFound
 
       // Database + Migrate

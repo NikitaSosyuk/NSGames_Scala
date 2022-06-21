@@ -1,7 +1,7 @@
 package nktssk.nsgames.repositories.user
 
 import doobie.{Meta, Query0, Update0}
-import nktssk.nsgames.domain.users.models.{Role, User}
+import nktssk.nsgames.domain.users.models.{Role, User, UserState}
 import cats.syntax.all._
 import doobie.implicits._
 import io.circe.parser.decode
@@ -9,6 +9,9 @@ import io.circe.syntax._
 
 
 object UserSQL {
+  implicit val StatusMeta: Meta[UserState] =
+    Meta[String].imap(UserState.withName)(_.entryName)
+
   implicit val roleMeta: Meta[Role] =
     Meta[String].imap(decode[Role](_).leftMap(throw _).merge)(_.asJson.toString)
 
@@ -35,9 +38,9 @@ object UserSQL {
     WHERE PHONE_NUMBER = $phoneNumber
   """.query[User]
 
-  def updateUserCode(user: User): Update0 = sql"""
+  def update(phoneNumber: String, code: String): Update0 = sql"""
     UPDATE USERS
-    SET CONFIRM_CODE = ${user.confirmCode}
-    WHERE ID = ${user.id}
+    SET CONFIRM_CODE = ${code},
+    WHERE PHONE_NUMBER = ${phoneNumber}
   """.update
 }

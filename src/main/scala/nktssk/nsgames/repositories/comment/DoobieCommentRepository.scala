@@ -14,7 +14,7 @@ object DoobieCommentRepository {
 }
 
 class DoobieCommentRepository[F[_]: Bracket[*[_], Throwable]](val xa: Transactor[F])
-  extends CommentRepositoryTrait[F] {
+  extends CommentRepositoryAlgebra[F] {
 
   override def create(comment: Comment): F[Comment] =
     insert(comment)

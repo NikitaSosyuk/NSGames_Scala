@@ -1,4 +1,4 @@
-package nktssk.nsgames.endpoints.user.dto
+package nktssk.nsgames.endpoints.user.dto.request
 
 final case class SignupRequestModel(
                                      firstname: String,

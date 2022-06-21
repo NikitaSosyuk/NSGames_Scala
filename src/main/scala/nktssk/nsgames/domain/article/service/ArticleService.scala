@@ -5,12 +5,12 @@ import cats.syntax.all._
 import cats.data.EitherT
 import nktssk.nsgames.domain.ArticleNotFoundError
 import nktssk.nsgames.domain.article.models.Article
-import nktssk.nsgames.domain.article.validation.ArticleValidationTrait
-import nktssk.nsgames.repositories.article.ArticleRepositoryTrait
+import nktssk.nsgames.domain.article.validation.ArticleValidationAlgebra
+import nktssk.nsgames.repositories.article.ArticleRepositoryAlgebra
 
 class ArticleService[F[_]](
-                            repository: ArticleRepositoryTrait[F],
-                            validation: ArticleValidationTrait[F]
+                            repository: ArticleRepositoryAlgebra[F],
+                            validation: ArticleValidationAlgebra[F]
                           ) {
   def create(article: Article)(implicit M: Monad[F]): F[Article] =
     for {
@@ -37,8 +37,8 @@ class ArticleService[F[_]](
 
 object ArticleService {
   def apply[F[_]](
-                   repository: ArticleRepositoryTrait[F],
-                   validation: ArticleValidationTrait[F])
+                   repository: ArticleRepositoryAlgebra[F],
+                   validation: ArticleValidationAlgebra[F])
   : ArticleService[F] =
     new ArticleService(repository, validation)
 }

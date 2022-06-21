@@ -34,6 +34,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-h2" % DoobieVersion,
   "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
   "org.tpolecat" %% "doobie-hikari" % DoobieVersion,
+  "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
   "com.beachape" %% "enumeratum-circe" % EnumeratumCirceVersion,
   "com.h2database" % "h2" % H2Version,
   "org.http4s" %% "http4s-blaze-server" % Http4sVersion,

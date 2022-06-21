@@ -7,14 +7,14 @@ import io.circe.generic.auto._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, HttpRoutes}
 import nktssk.nsgames.domain.authentication.Auth
-import nktssk.nsgames.domain.comment.model.Comment
+import nktssk.nsgames.domain.comment.model.{Comment, CommentResponse}
 import nktssk.nsgames.domain.comment.service.CommentService
 import nktssk.nsgames.domain.users.models.User
 import nktssk.nsgames.endpoint.{AuthEndpoint, AuthService}
 import nktssk.nsgames.endpoints.Pagination.{OptionalOffsetMatcher, OptionalPageSizeMatcher}
 
 import java.util.Date
-import org.http4s.circe.jsonOf
+import org.http4s.circe.{jsonEncoder, jsonOf}
 import tsec.authentication.{AugmentedJWT, SecuredRequestHandler, asAuthed}
 import tsec.jwt.algorithms.JWTMacAlgo
 import nktssk.nsgames.endpoints.comment.dto.CommentRequestModel
@@ -27,7 +27,6 @@ object CommentEndpoints {
     new CommentEndpoints[F, Auth].endpoints(commentService, auth)
 }
 
-
 class CommentEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
 
   def endpoints(
@@ -36,37 +35,40 @@ class CommentEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
                ): HttpRoutes[F] = {
     val authEndpoints: AuthService[F, Auth] = {
       Auth.allRoles {
-        createArticleEndpoint(commentService)
-          .orElse(listForArticle(commentService))
+        createCommentEndpoint(commentService)
+          .orElse(listForComment(commentService))
       }
     }
     auth.liftService(authEndpoints)
   }
 
-  private def createArticleEndpoint(commentService: CommentService[F]): AuthEndpoint[F, Auth] = {
+  private def createCommentEndpoint(commentService: CommentService[F]): AuthEndpoint[F, Auth] = {
     case req@POST -> Root / "create" asAuthed user =>
       user.id match {
         case Some(id) =>
           for {
             model <- req.request.as[CommentRequestModel]
-            comment <- Comment(None, id, s"$user.firstName  $user.lastName", model.articleId, model.text, new Date()).pure[F]
-            result <- commentService.create(comment)
-            resp <- Ok(result.asJson)
+            result <- commentService.create(Comment(None, id, user.firstName + " " + user.lastName, model.articleId, model.text, new Date()))
+            resp <- Ok(CommentResponse.from(result).asJson)
           } yield resp
         case None =>
-          NotFound("user id not found")
+          NotFound("User id not found")
       }
   }
 
-  private def listForArticle(commentService: CommentService[F]): AuthEndpoint[F, Auth] = {
+  private def listForComment(commentService: CommentService[F]): AuthEndpoint[F, Auth] = {
     case GET -> Root / "list" / LongVar(id) :? OptionalPageSizeMatcher(pageSize) :? OptionalOffsetMatcher(offset) asAuthed _ =>
-      for {
-        result <- commentService.get(id, pageSize.getOrElse(40), offset.getOrElse(0)).pure[F]
-        resp <- Ok(result.asJson)
-      } yield resp
+      val action = for {
+        action <- commentService.get(id, pageSize.getOrElse(40), offset.getOrElse(0)).value
+      } yield action
+
+      action.flatMap {
+        case Right(value) => Ok(value.map{CommentResponse.from}.asJson)
+        case Left(_) => BadRequest("Incorrect article id")
+      }
   }
 
   // Implicits
-  implicit val commentDecoder: EntityDecoder[F, Comment] = jsonOf
+  implicit val commentDecoder: EntityDecoder[F, CommentResponse] = jsonOf
   implicit val commentModelDecoder: EntityDecoder[F, CommentRequestModel] = jsonOf[F, CommentRequestModel]
 }

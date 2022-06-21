@@ -39,7 +39,6 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
         createArticleEndpoint(articleService)
           .orElse(getArticleEndpoint(articleService))
           .orElse(getListArticleEndpoint(articleService))
-          .orElse(deleteArticleEndpoint(articleService))
           .orElse(getHeaderListArticleEndpoint(articleService))
       }
     }
@@ -83,29 +82,6 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
         result <- articleService.list(pageSize.getOrElse(40), offset.getOrElse(0))
         resp <- Ok(result.map {_.header}.asJson)
       } yield resp
-  }
-
-  private def deleteArticleEndpoint(articleService: ArticleService[F]): AuthEndpoint[F, Auth] = {
-    case DELETE -> Root / LongVar(id) asAuthed user =>
-      user.id match {
-        case Some(userId) =>
-          for {
-            result <- articleService.get(id).value
-            response <- result match {
-              case Right(value) =>
-                if (value.userId == userId) {
-                  articleService.delete(value.id.getOrElse(0))
-                  Ok("done")
-                } else {
-                  Conflict("User is not a creator of this article")
-                }
-              case Left(_) =>
-                BadRequest("Could not find article")
-            }
-          } yield response
-        case None =>
-          Conflict("User id does not find")
-      }
   }
 
   // Implicits

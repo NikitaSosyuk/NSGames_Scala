@@ -3,25 +3,23 @@ package nktssk.nsgames.domain.users.service
 import cats.Monad
 import cats.data.EitherT
 import nktssk.nsgames.domain.users.models.User
-import nktssk.nsgames.domain.users.validation.UserValidationTrait
-import nktssk.nsgames.repositories.user.UserRepositoryTrait
+import nktssk.nsgames.domain.users.validation.UserValidationAlgebra
+import nktssk.nsgames.repositories.user.UserRepositoryAlgebra
 import cats.Functor
 import nktssk.nsgames.domain.{UserAlreadyExistsError, UserNotFoundError}
 
-import scala.util.Random
-
 object UserService {
   def apply[F[_]](
-                   repository: UserRepositoryTrait[F],
-                   validation: UserValidationTrait[F],
+                   repository: UserRepositoryAlgebra[F],
+                   validation: UserValidationAlgebra[F],
                  ): UserService[F] =
     new UserService[F](repository, validation)
 }
 
-class UserService[F[_]](userRepo: UserRepositoryTrait[F], validation: UserValidationTrait[F]) extends UserServiceTrait[F] {
-
-  private val random = new Random()
-
+class UserService[F[_]](
+                         userRepo: UserRepositoryAlgebra[F],
+                         validation: UserValidationAlgebra[F]
+                       ) extends UserServiceAlgebra[F] {
   override def create(user: User)(implicit M: Monad[F]): EitherT[F, UserAlreadyExistsError, User] = {
     for {
       _ <- validation.doesNotExist(user)
@@ -37,10 +35,4 @@ class UserService[F[_]](userRepo: UserRepositoryTrait[F], validation: UserValida
 
   override def findByPhoneNumber(phoneNumber: String)(implicit F: Functor[F]): EitherT[F, UserNotFoundError.type , User] =
     userRepo.findByPhoneNumber(phoneNumber).toRight(UserNotFoundError)
-
-  override def createCode(user: User)(implicit F: Functor[F]): EitherT[F, UserNotFoundError.type, User] = {
-    val code = random.nextInt().toString
-    val updatedUser = user.copy(confirmCode = Some(code))
-    userRepo.updateCode(updatedUser).toRight(UserNotFoundError)
-  }
 }

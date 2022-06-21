@@ -13,7 +13,7 @@ object ArticleSQL {
   def select(id: Long): Query0[Article] = sql"""
     SELECT ID, USER_ID, VISIBLE, HEADER, BODY
     FROM ARTICLE
-    WHERE ID = $id
+    WHERE ID = $id AND VISIBLE = true
   """.query
 
   def selectAll(): Query0[Article] = sql"""

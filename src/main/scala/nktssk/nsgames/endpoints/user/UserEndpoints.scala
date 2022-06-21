@@ -14,7 +14,8 @@ import tsec.passwordhashers.{PasswordHash, PasswordHasher}
 import tsec.authentication._
 import nktssk.nsgames.domain.users.models.{Role, User, UserState}
 import nktssk.nsgames.domain.users.service.UserService
-import nktssk.nsgames.endpoints.user.dto.{LoginRequestModel, SignupRequestModel}
+import nktssk.nsgames.endpoints.user.dto.request.{LoginRequestModel, SignupRequestModel}
+import nktssk.nsgames.endpoints.user.dto.response.UserResponse
 import tsec.common.Verified
 
 object UserEndpoints {
@@ -45,22 +46,12 @@ class UserEndpoints[F[_] : Sync, A, Auth: JWTMacAlgo] extends Http4sDsl[F] {
       val action = for {
         signup <- req.as[SignupRequestModel]
         hash <- crypt.hashpw(signup.password)
-        user <- User(
-          None,
-          signup.firstname,
-          signup.lastname,
-          signup.phoneNumber,
-          None,
-          hash,
-          signup.email,
-          Role.User,
-          UserState(UserState.ACTIVE)
-        ).pure[F]
+        user <- User(None, signup.firstname, signup.lastname, signup.phoneNumber, None, hash, signup.email, Role.User, UserState.Active).pure[F]
         result <- userService.create(user).value
       } yield result
 
       action.flatMap {
-        case Right(saved) => Ok(saved.asJson)
+        case Right(saved) => Ok(UserResponse.from(saved).asJson)
         case Left(UserAlreadyExistsError(phoneNumber)) =>
           Conflict(s"The user with [phone = ${phoneNumber}] already exists")
       }
@@ -89,14 +80,13 @@ class UserEndpoints[F[_] : Sync, A, Auth: JWTMacAlgo] extends Http4sDsl[F] {
       } yield (user, token)
 
       action.value.flatMap {
-        case Right((user, token)) => Ok(user.asJson).map(auth.embed(_, token))
+        case Right((user, token)) => Ok(UserResponse.from(user).asJson).map(auth.embed(_, token))
         case Left(UserAuthenticationFailedError(name)) =>
           BadRequest(s"Authentication failed for user $name")
       }
     }
 
   // Implicits
-
   implicit val userDecoder: EntityDecoder[F, User] = jsonOf
   implicit val loginReqDecoder: EntityDecoder[F, LoginRequestModel] = jsonOf
   implicit val signupReqDecoder: EntityDecoder[F, SignupRequestModel] = jsonOf
