@@ -1,13 +1,15 @@
 package nktssk.nsgames.domain.users.models
 
-import cats.Eq
+import enumeratum._
 
-final case class UserState(name: String)
+import scala.collection.immutable
 
-object UserState {
-  val ACTIVE = "ACTIVE"
-  var BLOCKED = "BLOCKED"
-  var INVALID = "INVALID"
+sealed trait UserState extends EnumEntry
 
-  implicit val eqUserState: Eq[UserState] = Eq.fromUniversalEquals[UserState]
+case object UserState extends Enum[UserState] with CirceEnum[UserState] {
+  case object Active extends UserState
+  case object Blocked extends UserState
+  case object Invalid extends UserState
+
+  val values: immutable.IndexedSeq[UserState] = findValues
 }

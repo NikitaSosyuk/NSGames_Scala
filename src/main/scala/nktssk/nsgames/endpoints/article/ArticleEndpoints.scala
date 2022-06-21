@@ -40,13 +40,14 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
           .orElse(getArticleEndpoint(articleService))
           .orElse(getListArticleEndpoint(articleService))
           .orElse(deleteArticleEndpoint(articleService))
+          .orElse(getHeaderListArticleEndpoint(articleService))
       }
     }
     auth.liftService(authEndpoints)
   }
 
   private def createArticleEndpoint(articleService: ArticleService[F]): AuthEndpoint[F, Auth] = {
-    case req@POST -> Root asAuthed user =>
+    case req@POST -> Root / "create" asAuthed user =>
       user.id match {
         case Some(id) =>
           for {
@@ -73,6 +74,14 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
       for {
         result <- articleService.list(pageSize.getOrElse(40), offset.getOrElse(0))
         resp <- Ok(result.asJson)
+      } yield resp
+  }
+
+  private def getHeaderListArticleEndpoint(articleService: ArticleService[F]): AuthEndpoint[F, Auth] = {
+    case GET -> Root / "headers" :? OptionalPageSizeMatcher(pageSize) :? OptionalOffsetMatcher(offset) asAuthed _ =>
+      for {
+        result <- articleService.list(pageSize.getOrElse(40), offset.getOrElse(0))
+        resp <- Ok(result.map {_.header}.asJson)
       } yield resp
   }
 

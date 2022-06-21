@@ -10,12 +10,15 @@ import doobie.util.ExecutionContexts
 import io.circe.config.parser
 import nktssk.nsgames.domain.authentication.Auth
 import nktssk.nsgames.domain.users.service.UserService
+import nktssk.nsgames.domain.comment.service.CommentService
 import nktssk.nsgames.domain.article.validation.ArticleValidation
 import nktssk.nsgames.domain.article.service.ArticleService
 import nktssk.nsgames.domain.users.validation.UserValidation
 import nktssk.nsgames.endpoints.article.ArticleEndpoints
+import nktssk.nsgames.endpoints.comment.CommentEndpoints
 import nktssk.nsgames.endpoints.user.UserEndpoints
 import nktssk.nsgames.repositories.article.DoobieArticleRepository
+import nktssk.nsgames.repositories.comment.DoobieCommentRepository
 import nktssk.nsgames.repositories.auth.DoobieAuthRepositoryInterpreter
 import nktssk.nsgames.repositories.user.DoobieUserRepository
 import tsec.authentication.SecuredRequestHandler
@@ -37,6 +40,7 @@ object Server extends IOApp {
       authRepo = DoobieAuthRepositoryInterpreter[F, HMACSHA256](key, xa)
       userRepo = DoobieUserRepository[F](xa)
       articleRepo = DoobieArticleRepository[F](xa)
+      commentRepo = DoobieCommentRepository[F](xa)
 
       // Validators
       userValidation = UserValidation[F](userRepo)
@@ -45,6 +49,7 @@ object Server extends IOApp {
       // Services
       userService = UserService[F](userRepo, userValidation)
       articleService = ArticleService[F](articleRepo, articleValidation)
+      commentService = CommentService[F](commentRepo, articleValidation)
 
       // Auth
       authenticator = Auth.jwtAuthenticator[F, HMACSHA256](key, authRepo, userRepo)
@@ -52,9 +57,10 @@ object Server extends IOApp {
 
       // Routes
       httpApp = Router(
-        "/users" -> UserEndpoints
+        "/auth" -> UserEndpoints
           .endpoints[F, BCrypt, HMACSHA256](userService, BCrypt.syncPasswordHasher[F], routeAuth),
-        "/article" -> ArticleEndpoints.endpoints(articleService, routeAuth)
+        "/article" -> ArticleEndpoints.endpoints(articleService, routeAuth),
+        "/comment" -> CommentEndpoints.endpoints(commentService, routeAuth)
       ).orNotFound
 
       // Database + Migrate

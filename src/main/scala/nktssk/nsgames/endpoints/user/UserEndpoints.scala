@@ -41,7 +41,7 @@ class UserEndpoints[F[_] : Sync, A, Auth: JWTMacAlgo] extends Http4sDsl[F] {
                               userService: UserService[F],
                               crypt: PasswordHasher[F, A],
                             ): HttpRoutes[F] =
-    HttpRoutes.of[F] { case req@POST -> Root =>
+    HttpRoutes.of[F] { case req@POST -> Root / "signup" =>
       val action = for {
         signup <- req.as[SignupRequestModel]
         hash <- crypt.hashpw(signup.password)

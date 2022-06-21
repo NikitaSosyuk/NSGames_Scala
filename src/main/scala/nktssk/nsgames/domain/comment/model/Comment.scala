@@ -1,6 +1,6 @@
 package nktssk.nsgames.domain.comment.model
 
-import java.sql.Date
+import java.util.Date
 
 final case class Comment(
                         id: Option[Long],

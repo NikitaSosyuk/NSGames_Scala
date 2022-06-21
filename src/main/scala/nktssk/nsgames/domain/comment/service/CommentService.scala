@@ -17,10 +17,10 @@ class CommentService[F[_]](
       saved <- repository.create(comment)
     } yield saved
 
-  def get(articleId: Long, pageSize: Int, offset: Int)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, Comment] = {
+  def get(articleId: Long, pageSize: Int, offset: Int)(implicit M: Monad[F]): EitherT[F, ArticleNotFoundError.type, List[Comment]] = {
     for {
       _ <- validation.exists(Some(articleId))
-      result = repository.list(articleId, pageSize, offset)
+      result <- EitherT.right(repository.list(articleId, pageSize, offset))
     } yield result
   }
 }
