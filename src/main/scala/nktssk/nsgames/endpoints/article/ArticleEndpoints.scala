@@ -51,8 +51,7 @@ class ArticleEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
         case Some(id) =>
           for {
             model <- req.request.as[ArticleRequestModel]
-            article <- Article(None, id, isVisible = true, model.header, model.body).pure[F]
-            result <- articleService.create(article)
+            result <- articleService.create(model, id)
             resp <- Ok(result.asJson)
           } yield resp
         case None =>

@@ -6,14 +6,16 @@ import cats.data.EitherT
 import nktssk.nsgames.domain.ArticleNotFoundError
 import nktssk.nsgames.domain.article.models.Article
 import nktssk.nsgames.domain.article.validation.ArticleValidationAlgebra
+import nktssk.nsgames.endpoints.article.dto.ArticleRequestModel
 import nktssk.nsgames.repositories.article.ArticleRepositoryAlgebra
 
 class ArticleService[F[_]](
                             repository: ArticleRepositoryAlgebra[F],
                             validation: ArticleValidationAlgebra[F]
                           ) {
-  def create(article: Article)(implicit M: Monad[F]): F[Article] =
+  def create(model: ArticleRequestModel, userId: Long)(implicit M: Monad[F]): F[Article] =
     for {
+      article <- Article(None, userId, isVisible = true, model.header, model.body).pure[F]
       saved <- repository.create(article)
     } yield saved
 

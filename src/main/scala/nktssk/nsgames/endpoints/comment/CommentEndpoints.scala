@@ -7,17 +7,16 @@ import io.circe.generic.auto._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, HttpRoutes}
 import nktssk.nsgames.domain.authentication.Auth
-import nktssk.nsgames.domain.comment.model.{Comment, CommentResponse}
 import nktssk.nsgames.domain.comment.service.CommentService
 import nktssk.nsgames.domain.users.models.User
 import nktssk.nsgames.endpoint.{AuthEndpoint, AuthService}
 import nktssk.nsgames.endpoints.Pagination.{OptionalOffsetMatcher, OptionalPageSizeMatcher}
+import nktssk.nsgames.endpoints.comment.dto.request.CommentRequestModel
 
-import java.util.Date
 import org.http4s.circe.{jsonEncoder, jsonOf}
 import tsec.authentication.{AugmentedJWT, SecuredRequestHandler, asAuthed}
 import tsec.jwt.algorithms.JWTMacAlgo
-import nktssk.nsgames.endpoints.comment.dto.CommentRequestModel
+import nktssk.nsgames.endpoints.comment.dto.response.CommentResponse
 
 object CommentEndpoints {
   def endpoints[F[_] : Sync, Auth: JWTMacAlgo](
@@ -48,7 +47,7 @@ class CommentEndpoints[F[_] : Sync, Auth: JWTMacAlgo] extends Http4sDsl[F] {
         case Some(id) =>
           for {
             model <- req.request.as[CommentRequestModel]
-            result <- commentService.create(Comment(None, id, user.firstName + " " + user.lastName, model.articleId, model.text, new Date()))
+            result <- commentService.create(model, user, id)
             resp <- Ok(CommentResponse.from(result).asJson)
           } yield resp
         case None =>
